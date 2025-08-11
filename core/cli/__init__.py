@@ -1,0 +1,1 @@
+"""DevAlex Core CLI module"""

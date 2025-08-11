@@ -1,0 +1,21 @@
+# DevAlex Agentic Toolbox Requirements
+
+# Core dependencies
+requests>=2.28.0
+pyyaml>=6.0
+pathlib2>=2.3.7; python_version < '3.4'
+
+# Optional dependencies for enhanced functionality
+# Uncomment as needed:
+
+# Security scanning
+# safety>=2.3.0
+# bandit>=1.7.0
+
+# Agent orchestration (future)
+# crewai>=0.1.0
+
+# Development tools
+# pytest>=7.0.0
+# black>=22.0.0
+# flake8>=5.0.0
