@@ -1,0 +1,1 @@
+"""DevAlex Smart Dependency Management System"""

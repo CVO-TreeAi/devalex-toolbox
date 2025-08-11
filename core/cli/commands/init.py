@@ -1,6 +1,7 @@
 """DevAlex init command"""
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -8,6 +9,15 @@ from datetime import datetime
 from pathlib import Path
 from .base import BaseCommand
 from ..utils.config import DevAlexConfig
+
+# Add tools to Python path
+tools_path = str(Path(__file__).parent.parent.parent.parent / "tools" / "planr")
+sys.path.insert(0, tools_path)
+from auto_generator import AutoRoadmapGenerator
+
+core_path = str(Path(__file__).parent.parent.parent)
+sys.path.insert(0, core_path)
+from agents.system import DevAlexAgentSystem
 
 class InitCommand(BaseCommand):
     """Initialize new DevAlex project"""
@@ -57,6 +67,12 @@ class InitCommand(BaseCommand):
         
         # Setup project structure
         self._setup_project_structure(project_dir)
+        
+        # Initialize agent system
+        self._initialize_agents(project_dir)
+        
+        # Auto-generate roadmap
+        self._auto_generate_roadmap(project_dir, args.name, args.type)
         
         print(f"\n🎉 DevAlex project '{args.name}' is ready!")
         print("="*60)
@@ -159,10 +175,19 @@ class InitCommand(BaseCommand):
 
 ### Commands
 When user says "DevAlex [command]", execute:
-- "DevAlex status" → Check system health
-- "DevAlex planr generate" → Generate development roadmap
+- "DevAlex status" → Check system health  
+- "DevAlex planr generate" → Generate/update development roadmap
+- "DevAlex agents status" → Check agent system status
 - "DevAlex security scan" → Run security analysis
 - "DevAlex components list" → Show available components
+
+### Auto-Roadmap Integration
+This project includes auto-generated development roadmaps in `.planr/`:
+- **PRD**: Product Requirements Document (`.planr/prd.md`)
+- **Tech Stack**: Technology decisions (`.planr/tech-stack.md`)  
+- **Roadmap**: AI-generated development plan (`.planr/roadmap.md`)
+
+When user says "DevAlex", automatically reference the roadmap for context and next steps.
 
 ## 🔥 The Three Amigos Partnership
 
@@ -303,3 +328,39 @@ Thumbs.db"""
         (project_dir / "tools" / "__init__.py").touch()
         
         print("  🏗️ Project structure ready")
+        
+    def _initialize_agents(self, project_dir):
+        """Initialize DevAlex agent system for the project"""
+        print("🤖 Initializing DevAlex agents...")
+        
+        # Change to project directory for agent initialization
+        original_cwd = Path.cwd()
+        try:
+            os.chdir(project_dir)
+            agent_system = DevAlexAgentSystem()
+            agent_system.initialize_agent_system()
+            print("  🤖 Agent system ready")
+        finally:
+            os.chdir(original_cwd)
+            
+    def _auto_generate_roadmap(self, project_dir, project_name, project_type):
+        """Auto-generate development roadmap for the project"""
+        print("🗺️ Auto-generating development roadmap...")
+        
+        # Change to project directory for roadmap generation
+        original_cwd = Path.cwd()
+        try:
+            os.chdir(project_dir)
+            generator = AutoRoadmapGenerator()
+            result = generator.detect_and_generate_roadmap()
+            
+            print(f"  📊 Generated roadmap for {project_type} project")
+            print(f"  📋 Story points: {result['total_story_points']}")
+            print(f"  ⏱️ Timeline: {result['estimated_timeline']}")
+            print("  🗺️ Roadmap ready for development!")
+            
+        except Exception as e:
+            print(f"  ⚠️ Roadmap generation had issues: {e}")
+            print("  You can generate it manually with: devalex planr generate")
+        finally:
+            os.chdir(original_cwd)
