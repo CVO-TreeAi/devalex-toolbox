@@ -52,11 +52,14 @@ class InitCommand(BaseCommand):
         project_dir.mkdir()
         print(f"📁 Created project directory: {project_dir}")
         
+        # Run tech stack advisor for project optimization
+        tech_recommendations = self._run_tech_advisor(project_dir, args.name, args.type)
+        
         # Copy project template
         self._copy_project_template(project_dir, args.type)
         
         # Create project configuration
-        self._create_project_config(project_dir, args.name, args.type)
+        self._create_project_config(project_dir, args.name, args.type, tech_recommendations)
         
         # Create Claude Code integration
         self._create_claude_code_integration(project_dir, args.name)
@@ -80,7 +83,8 @@ class InitCommand(BaseCommand):
         print(f"   1. cd {args.name}")
         print("   2. Open in Claude Code")
         print("   3. Say 'DevAlex' to activate the three amigos!")
-        print("   4. Start building amazing things together! 🚀")
+        print("   4. Review tech recommendations: devalex tech preferences")
+        print("   5. Start building amazing things together! 🚀")
         
     def _copy_project_template(self, project_dir, project_type):
         """Copy project template"""
@@ -126,7 +130,7 @@ class InitCommand(BaseCommand):
         (project_dir / "src" / "__init__.py").touch()
         (project_dir / "tests" / "__init__.py").touch()
         
-    def _create_project_config(self, project_dir, project_name, project_type):
+    def _create_project_config(self, project_dir, project_name, project_type, tech_recommendations=None):
         """Create project-specific configuration"""
         print("⚙️ Creating project configuration...")
         
@@ -138,6 +142,24 @@ class InitCommand(BaseCommand):
             "three_amigos": ["user", "devalex", "claude_code"],
             **DevAlexConfig.PROJECT_DEFAULTS
         }
+        
+        # Add tech stack information if available
+        if tech_recommendations:
+            stack = tech_recommendations.get("recommended_stack", {})
+            config["tech_stack"] = {
+                "frontend": stack.get("frontend"),
+                "backend": stack.get("backend"), 
+                "database": stack.get("database"),
+                "hosting": stack.get("hosting"),
+                "css": stack.get("css"),
+                "auth": stack.get("auth"),
+                "orm": stack.get("orm")
+            }
+            config["tech_advisor"] = {
+                "recommendations_saved": True,
+                "complexity_level": tech_recommendations.get("estimated_complexity", {}).get("level"),
+                "estimated_dev_time": tech_recommendations.get("estimated_complexity", {}).get("estimated_dev_time")
+            }
         
         config_file = project_dir / "devalex.json"
         with open(config_file, 'w') as f:
@@ -178,6 +200,9 @@ When user says "DevAlex [command]", execute:
 - "DevAlex status" → Check system health  
 - "DevAlex planr generate" → Generate/update development roadmap
 - "DevAlex agents status" → Check agent system status
+- "DevAlex tech advisor" → Interactive tech stack advisor
+- "DevAlex tech analyze" → Analyze current project tech stack
+- "DevAlex tech preferences" → Show learned tech preferences
 - "DevAlex security scan" → Run security analysis
 - "DevAlex components list" → Show available components
 
@@ -250,7 +275,8 @@ This is a DevAlex-powered {project_name} project initialized on {datetime.now().
 ## Getting Started
 1. Say "DevAlex" to activate agent coordination
 2. Use "devalex status" to check system health
-3. Run "devalex planr generate" for development roadmaps
+3. Use "devalex tech advisor" for interactive tech guidance
+4. Run "devalex planr generate" for development roadmaps
 
 ## Development Workflow
 1. Plan features with DevAlex agents
@@ -364,3 +390,57 @@ Thumbs.db"""
             print("  You can generate it manually with: devalex planr generate")
         finally:
             os.chdir(original_cwd)
+            
+    def _run_tech_advisor(self, project_dir, project_name, project_type):
+        """Run tech stack advisor to optimize project setup"""
+        print("🛠️ Running DevAlex Tech Stack Advisor...")
+        
+        # Import tech advisor when needed
+        try:
+            from agents.tech_advisor import TechStackAdvisor
+            
+            # Create user input for tech advisor
+            user_input = {
+                "type": project_type,
+                "description": f"New {project_type} project named {project_name}",
+                "devices": ["web"] if project_type in ["webapp", "api"] else ["web", "mobile"]
+            }
+            
+            # Run tech stack analysis
+            advisor = TechStackAdvisor(str(project_dir))
+            recommendations = advisor.analyze_and_recommend(user_input)
+            
+            # Display recommendations
+            stack = recommendations["recommended_stack"]
+            print("  🎯 Recommended Tech Stack:")
+            for category, tech in stack.items():
+                if tech and category not in ["tools", "compatibility_issues", "open_source_replacements"]:
+                    print(f"     • {category.title()}: {tech}")
+                    
+            # Save tech recommendations to project
+            tech_file = project_dir / ".devalex" / "tech_recommendations.json"
+            tech_file.parent.mkdir(parents=True, exist_ok=True)
+            
+            import json
+            with open(tech_file, 'w') as f:
+                json.dump(recommendations, f, indent=2)
+                
+            print("  ✅ Tech stack recommendations saved to .devalex/tech_recommendations.json")
+            
+            # Show key insights
+            if recommendations.get("warnings"):
+                print("  ⚠️ Tech Stack Notes:")
+                for warning in recommendations["warnings"][:3]:  # Show first 3 warnings
+                    print(f"     • {warning}")
+                    
+            complexity = recommendations.get("estimated_complexity", {})
+            if complexity:
+                print(f"  📊 Estimated Complexity: {complexity['level'].title()}")
+                print(f"  ⏱️ Development Time: {complexity['estimated_dev_time']}")
+                
+            return recommendations
+            
+        except Exception as e:
+            print(f"  ⚠️ Tech advisor had issues: {e}")
+            print("  Continuing with default project setup...")
+            return None

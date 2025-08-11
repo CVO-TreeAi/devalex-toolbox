@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 from datetime import datetime
+from .xml_prompts import XMLPromptTemplates
 
 @dataclass
 class AgentConfig:

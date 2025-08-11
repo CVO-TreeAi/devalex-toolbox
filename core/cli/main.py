@@ -18,6 +18,7 @@ from .commands.planr import PlanrCommand
 from .commands.agents import AgentsCommand
 from .commands.security import SecurityCommand
 from .commands.components import ComponentsCommand
+from .commands.tech import TechCommand
 from .utils.banner import print_banner
 from .utils.config import DevAlexConfig
 
@@ -30,6 +31,7 @@ def create_parser():
 Examples:
   devalex init my-project --type webapp    # Create new project
   devalex status                           # Check system status
+  devalex tech advisor                     # Interactive tech stack advisor
   devalex planr generate                   # Generate development roadmap
   devalex agents status                    # Check agent system
   devalex security scan                    # Run security analysis
@@ -55,6 +57,7 @@ The Three Amigos: You + DevAlex + Claude Code = Unstoppable! 🚀
     AgentsCommand.register(subparsers)
     SecurityCommand.register(subparsers)
     ComponentsCommand.register(subparsers)
+    TechCommand.register(subparsers)
     
     return parser
 
