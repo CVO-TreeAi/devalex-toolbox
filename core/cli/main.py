@@ -19,6 +19,10 @@ from .commands.agents import AgentsCommand
 from .commands.security import SecurityCommand
 from .commands.components import ComponentsCommand
 from .commands.tech import TechCommand
+from .commands.scaffold import ScaffoldCommand
+from .commands.code import CodeCommand
+from .commands.test import TestCommand
+from .commands.deploy import DeployCommand
 from .utils.banner import print_banner
 from .utils.config import DevAlexConfig
 
@@ -30,11 +34,13 @@ def create_parser():
         epilog="""
 Examples:
   devalex init my-project --type webapp    # Create new project
+  devalex scaffold generate fullstack-webapp myapp  # Generate full project
+  devalex code generate function "calculate fibonacci"  # AI code generation
+  devalex test setup python               # Setup testing framework
+  devalex deploy docker fastapi           # Setup Docker containerization
   devalex status                           # Check system status
   devalex tech advisor                     # Interactive tech stack advisor
   devalex planr generate                   # Generate development roadmap
-  devalex agents status                    # Check agent system
-  devalex security scan                    # Run security analysis
 
 The Three Amigos: You + DevAlex + Claude Code = Unstoppable! 🚀
         """
@@ -58,6 +64,10 @@ The Three Amigos: You + DevAlex + Claude Code = Unstoppable! 🚀
     SecurityCommand.register(subparsers)
     ComponentsCommand.register(subparsers)
     TechCommand.register(subparsers)
+    ScaffoldCommand.register(subparsers)
+    CodeCommand.register(subparsers)
+    TestCommand.register(subparsers)
+    DeployCommand.register(subparsers)
     
     return parser
 
